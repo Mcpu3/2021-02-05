@@ -1,148 +1,589 @@
+#include <limits.h>
 #include "Servo.h"
 
 Servo servo;
-const int MOTOR_LEFT_IN1 = 2;
-const int MOTOR_LEFT_IN2 = 4;
-const int MOTOR_RIGHT_IN1 = 7;
-const int MOTOR_RIGHT_IN2 = 8;
-const int MOTOR_LEFT_OUT = 3;
-const int MOTOR_RIGHT_OUT = 5;
-const int PHOTO_LEFT = A0;
-const int PHOTO_LEFT = A1;
-const int PHOTO = A2;
-const int SERVO = 11;
-const int TRIG = 12;
-const int ECHO = 13;
-const int LED = 10;
 
-void setup() {
-	delay(5000);
+class Buzzer
+{
+private:
+	enum PIN
+	{
+		BUZZER = 6
+	};
+
+public:
+	Buzzer()
+	{
+		pinMode(BUZZER, OUTPUT);
+	}
+
+	void play_melody1()
+	{
+		tone(PIN::BUZZER, 220, 100);
+		delay(100);
+		tone(PIN::BUZZER, 440, 100);
+		delay(100);
+		tone(PIN::BUZZER, 880, 300);
+		delay(300);
+	}
+
+	void play_melody2()
+	{
+		tone(PIN::BUZZER, 440, 100);
+		delay(100);
+		tone(PIN::BUZZER, 880, 400);
+		delay(400);
+	}
+
+	void play_melody3()
+	{
+		tone(PIN::BUZZER, 440, 400);
+		delay(400);
+		tone(PIN::BUZZER, 880, 100);
+		delay(100);
+	}
+
+	void play_melody4()
+	{
+		tone(PIN::BUZZER, 880, 100);
+		delay(100);
+		tone(PIN::BUZZER, 440, 400);
+		delay(400);
+	}
+
+	void play_melody5()
+	{
+		tone(PIN::BUZZER, 880, 400);
+		delay(400);
+		tone(PIN::BUZZER, 440, 100);
+		delay(100);
+	}
+
+	void play_melody6()
+	{
+		tone(PIN::BUZZER, 880, 100);
+		delay(100);
+		tone(PIN::BUZZER, 440, 100);
+		delay(100);
+		tone(PIN::BUZZER, 200, 300);
+		delay(300);
+	}
+
+	void play_melody7()
+	{
+		tone(PIN::BUZZER, 440, 1000);
+		delay(1000);
+	}
+};
+
+class LED
+{
+private:
+	enum PIN
+	{
+		_LED = 10
+	};
+
+public:
+	LED()
+	{
+		pinMode(PIN::_LED, OUTPUT);
+	}
+
+	void set_high()
+	{
+		digitalWrite(PIN::_LED, HIGH);
+	}
+
+	void set_low()
+	{
+		digitalWrite(PIN::_LED, LOW);
+	}
+};
+
+class Motor
+{
+private:
+	enum PIN
+	{
+		IN1_LEFT = 2,
+		IN1_RIGHT = 7,
+		IN2_LEFT = 4,
+		IN2_RIGHT = 8,
+		OUT_LEFT = 3,
+		OUT_RIGHT = 5
+	};
+
+	enum STATE
+	{
+		BRAKE,
+		DRIVE,
+		LEFT,
+		TURN_LEFT,
+		RIGHT,
+		TURN_RIGHT,
+		REVERSE
+	};
+
+	STATE state;
+	int speed_left, speed_right;
+
+	void change_speed(const PIN pin, const int new_speed)
+	{
+		switch (pin)
+		{
+		case PIN::OUT_LEFT:
+			speed_left = new_speed;
+			analogWrite(PIN::OUT_LEFT, speed_left);
+			break;
+		case PIN::OUT_RIGHT:
+			speed_right = new_speed;
+			analogWrite(PIN::OUT_RIGHT, speed_right);
+			break;
+		}
+	}
+
+	void change_speed(const int new_speed)
+	{
+		speed_left = speed_right = new_speed;
+		analogWrite(OUT_LEFT, new_speed);
+		analogWrite(OUT_RIGHT, new_speed);
+	}
+
+public:
+	Motor() : state(STATE::BRAKE), speed_left(0), speed_right(0)
+	{
+		pinMode(PIN::IN1_LEFT, OUTPUT);
+		pinMode(PIN::IN1_RIGHT, OUTPUT);
+		pinMode(PIN::IN2_LEFT, OUTPUT);
+		pinMode(PIN::IN2_RIGHT, OUTPUT);
+		pinMode(PIN::OUT_LEFT, OUTPUT);
+		pinMode(PIN::OUT_RIGHT, OUTPUT);
+	}
+
+	void brake()
+	{
+		state = STATE::BRAKE;
+
+		digitalWrite(PIN::IN1_LEFT, LOW);
+		digitalWrite(PIN::IN1_RIGHT, LOW);
+		digitalWrite(PIN::IN2_LEFT, LOW);
+		digitalWrite(PIN::IN2_RIGHT, LOW);
+	}
+
+	void drive(const int new_speed)
+	{
+		state = STATE::DRIVE;
+
+		speed_left = speed_right = new_speed;
+		change_speed(new_speed);
+
+		digitalWrite(PIN::IN1_LEFT, HIGH);
+		digitalWrite(PIN::IN1_RIGHT, HIGH);
+		digitalWrite(PIN::IN2_LEFT, LOW);
+		digitalWrite(PIN::IN2_RIGHT, LOW);
+	}
+
+	void left(const int new_speed)
+	{
+		state = STATE::LEFT;
+
+		speed_left = new_speed;
+		change_speed(PIN::OUT_LEFT, speed_left);
+
+		digitalWrite(PIN::IN1_LEFT, LOW);
+		digitalWrite(PIN::IN1_RIGHT, HIGH);
+		digitalWrite(PIN::IN2_LEFT, LOW);
+		digitalWrite(PIN::IN2_RIGHT, LOW);
+	}
+
+	void turn_left(const int new_speed)
+	{
+		state = STATE::TURN_LEFT;
+
+		speed_left = speed_right = new_speed;
+		change_speed(new_speed);
+
+		digitalWrite(PIN::IN1_LEFT, LOW);
+		digitalWrite(PIN::IN1_RIGHT, HIGH);
+		digitalWrite(PIN::IN2_LEFT, HIGH);
+		digitalWrite(PIN::IN2_RIGHT, LOW);
+	}
+
+	void right(const int new_speed)
+	{
+		state = STATE::RIGHT;
+
+		speed_right = new_speed;
+		change_speed(PIN::OUT_RIGHT, speed_right);
+
+		digitalWrite(PIN::IN1_LEFT, HIGH);
+		digitalWrite(PIN::IN1_RIGHT, LOW);
+		digitalWrite(PIN::IN2_LEFT, LOW);
+		digitalWrite(PIN::IN2_RIGHT, LOW);
+	}
+
+	void turn_right(const int new_speed)
+	{
+		state = STATE::TURN_RIGHT;
+
+		speed_left = speed_right = new_speed;
+		change_speed(new_speed);
+		digitalWrite(PIN::IN1_LEFT, HIGH);
+		digitalWrite(PIN::IN1_RIGHT, LOW);
+		digitalWrite(PIN::IN2_LEFT, LOW);
+		digitalWrite(PIN::IN2_RIGHT, HIGH);
+	}
+
+	void reverse(const int new_speed)
+	{
+		state = STATE::REVERSE;
+
+		speed_left = speed_right = new_speed;
+		change_speed(new_speed);
+
+		digitalWrite(PIN::IN1_LEFT, LOW);
+		digitalWrite(PIN::IN1_RIGHT, LOW);
+		digitalWrite(PIN::IN2_LEFT, HIGH);
+		digitalWrite(PIN::IN2_RIGHT, HIGH);
+	}
+
+	void pause(const int pause_delay)
+	{
+		digitalWrite(PIN::IN1_LEFT, LOW);
+		digitalWrite(PIN::IN1_RIGHT, LOW);
+		digitalWrite(PIN::IN2_LEFT, LOW);
+		digitalWrite(PIN::IN2_RIGHT, LOW);
+
+		delay(pause_delay);
+
+		switch (state)
+		{
+		case STATE::BRAKE:
+			brake();
+			break;
+		case STATE::DRIVE:
+			drive(min(speed_left, speed_right));
+			break;
+		case STATE::LEFT:
+			left(speed_left);
+			break;
+		case STATE::TURN_LEFT:
+			turn_left(speed_left);
+			break;
+		case STATE::RIGHT:
+			right(speed_right);
+			break;
+		case STATE::TURN_RIGHT:
+			turn_right(speed_right);
+			break;
+		case STATE::REVERSE:
+			reverse(min(speed_left, speed_right));
+			break;
+		}
+	}
+};
+
+class PhotoT
+{
+private:
+	const int BLACK_VAL;
+
+	enum PIN
+	{
+		LEFT = A0,
+		RIGHT = A1
+	};
+
+public:
+	PhotoT() : BLACK_VAL(500) {}
+
+	bool is_black_left()
+	{
+		if (analogRead(PIN::LEFT) > 500)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	bool is_black_right()
+	{
+		if (analogRead(PIN::RIGHT) > 500)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	bool is_black()
+	{
+		return is_black_left() && is_black_right();
+	}
+
+	void print_debug()
+	{
+		Serial.print("Left: ");
+		Serial.print(analogRead(PIN::LEFT));
+		Serial.print(", ");
+		Serial.print("RIGHT: ");
+		Serial.println(analogRead(PIN::RIGHT));
+	}
+};
+
+class PhotoD
+{
+private:
+	const int HIGH_VAL;
+
+	enum PIN
+	{
+		_PHOTO_D = A2
+	};
+
+public:
+	PhotoD() : HIGH_VAL(500) {}
+
+	bool is_high()
+	{
+		if (analogRead(PIN::_PHOTO_D) > HIGH_VAL)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	void print_debug()
+	{
+		Serial.println(analogRead(PIN::_PHOTO_D));
+	}
+};
+
+class PhotoT
+{
+private:
+	const int BLACK_VAL;
+
+	enum PIN
+	{
+		LEFT = A0,
+		RIGHT = A1
+	};
+
+public:
+	PhotoT() : BLACK_VAL(500) {}
+
+	bool is_black_left()
+	{
+		if (analogRead(PIN::LEFT) > 500)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	bool is_black_right()
+	{
+		if (analogRead(PIN::RIGHT) > 500)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	bool is_black()
+	{
+		return is_black_left() && is_black_right();
+	}
+
+	void print_debug()
+	{
+		Serial.print("Left: ");
+		Serial.print(analogRead(PIN::LEFT));
+		Serial.print(", ");
+		Serial.print("RIGHT: ");
+		Serial.println(analogRead(PIN::RIGHT));
+	}
+};
+
+class Serv
+{
+public:
+	enum PIN
+	{
+		_SERVO = 11,
+		TRIG = 12,
+		ECHO = 13
+	};
+
+	int current_servo;
+	const double DIST_VAL_FRONT, DIST_VAL_SIDE;
+
+public:
+	Serv() : DIST_VAL_FRONT(6.0), DIST_VAL_SIDE(8.0)
+	{
+		pinMode(PIN::TRIG, OUTPUT);
+		pinMode(PIN::ECHO, INPUT);
+		set_servo_front();
+	}
+
+	int get_servo_pin()
+	{
+		return PIN::_SERVO;
+	}
+
+	double get_DIST_VAL_FRONT()
+	{
+		return DIST_VAL_FRONT;
+	}
+
+	double get_DIST_VAL_SIDE()
+	{
+		return DIST_VAL_SIDE;
+	}
+
+	void set_servo_front()
+	{
+		current_servo = 90;
+		servo.write(current_servo);
+	}
+
+	void set_servo_left()
+	{
+		current_servo = 180;
+		servo.write(current_servo);
+	}
+
+	void set_servo_right()
+	{
+		current_servo = 0;
+		servo.write(current_servo);
+	}
+
+	double get_dist()
+	{
+		digitalWrite(PIN::TRIG, HIGH);
+		delayMicroseconds(10);
+		digitalWrite(PIN::TRIG, LOW);
+
+		const unsigned long res = pulseIn(PIN::ECHO, HIGH);
+
+		if (res < 0ul)
+		{
+			return get_dist();
+		}
+
+		return (double)res / 2.0 * 343.0 / 10000.0;
+	}
+
+	void print_debug()
+	{
+		Serial.print("Dist: ");
+		Serial.print(get_dist());
+		Serial.println("cm");
+	}
+};
+
+Buzzer buzzer;
+LED led;
+Motor motor;
+PhotoD photo_d;
+PhotoT photo_t;
+Serv serv;
+
+void setup()
+{
+	pinMode(serv.get_servo_pin(), OUTPUT);
+	servo.attach(serv.get_servo_pin(), 500, 2400);
+
 	Serial.begin(9600);
-	pinMode(MOTOR_LEFT_IN1, OUTPUT);
-	pinMode(MOTOR_LEFT_IN2, OUTPUT);
-	pinMode(MOTOR_RIGHT_IN1, OUTPUT);
-	pinMode(MOTOR_RIGHT_IN2, OUTPUT);
-	pinMode(MOTOR_LEFT_OUT, OUTPUT);
-	pinMode(MOTOR_RIGHT_OUT, OUTPUT);
-	pinMode(SERVO, OUTPUT);
-	servo.attach(SERVO, 500, 2400);
-	pinMode(TRIG, OUTPUT);
-	pinMode(ECHO, INPUT);
-
-	analogWrite(MOTOR_LEFT_OUT, 96);
-	analogWrite(MOTOR_RIGHT_OUT, 96);
-	left();
-	set_servo_left();
+	delay(5000);
 }
 
-void drive() {
-	digitalWrite(MOTOR_LEFT_IN1, HIGH);
-	digitalWrite(MOTOR_LEFT_IN2, LOW);
-	digitalWrite(MOTOR_RIGHT_IN1, HIGH);
-	digitalWrite(MOTOR_RIGHT_IN2, LOW);
-}
+void kadai_3()
+{
+	serv.set_servo_front();
+	delay(500);
+	const double dist_front = serv.get_dist();
 
-void left() {
-	digitalWrite(MOTOR_LEFT_IN1, LOW);
-	digitalWrite(MOTOR_LEFT_IN2, LOW);
-	digitalWrite(MOTOR_RIGHT_IN1, HIGH);
-	digitalWrite(MOTOR_RIGHT_IN2, LOW);
-}
+	serv.set_servo_left();
+	delay(500);
+	const double dist_left = serv.get_dist();
 
-void right() {
-	digitalWrite(MOTOR_LEFT_IN1, HIGH);
-	digitalWrite(MOTOR_LEFT_IN2, LOW);
-	digitalWrite(MOTOR_RIGHT_IN1, LOW);
-	digitalWrite(MOTOR_RIGHT_IN2, LOW);
-}
+	serv.set_servo_right();
+	delay(500);
+	const double dist_right = serv.get_dist();
 
-void reverse() {
-	digitalWrite(MOTOR_LEFT_IN1, LOW);
-	digitalWrite(MOTOR_LEFT_IN2, HIGH);
-	digitalWrite(MOTOR_RIGHT_IN1, LOW);
-	digitalWrite(MOTOR_RIGHT_IN2, HIGH);
-}
+	if (dist_front < serv.get_DIST_VAL_FRONT())
+	{
+		if (dist_left > dist_right)
+		{
+			buzzer.play_melody2();
 
-void brake() {
-	digitalWrite(MOTOR_LEFT_IN1, LOW);
-	digitalWrite(MOTOR_LEFT_IN2, LOW);
-	digitalWrite(MOTOR_RIGHT_IN1, LOW);
-	digitalWrite(MOTOR_RIGHT_IN2, LOW);
-}
+			motor.turn_left(92);
+			delay(1000);
+			motor.brake();
 
-// 失敗したときは負の数を返す
-double get_dist() {
-	digitalWrite(TRIG, HIGH);
-	delayMicroseconds(10);
-	digitalWrite(TRIG, LOW);
-
-	const unsigned long res = pulseIn(ECHO, HIGH);
-
-	if (res < 0ul) {
-		return -1.0;
-	}
-
-	return (double)res / 2.0 * 343.0 / 10000.0;
-}
-
-void set_servo_front() {
-	servo.write(90);
-}
-
-void set_servo_left() {
-	servo.write(135);
-}
-
-void set_servo_right() {
-	servo.write(45);
-}
-
-bool is_wall() {
-	const double dist = get_dist();
-
-	if (dist < 0.0) {
-		return is_wall();
-	}
-
-	if (dist < 13.0) {
-		return true;
-	}
-
-	return false;
-}
-
-bool is_left = true;
-
-void loop() {
-	Serial.print("Dist: ");
-	Serial.print(get_dist());
-	Serial.print("cm");
-	Serial.println();
-
-	if (is_wall()) {
-		reverse();
-		delay(5);
-		brake();
-
-		if (is_left) {
-			set_servo_right();
+			motor.drive(64);
+			delay(100);
+			motor.brake();
 		}
-		else {
-			set_servo_left();
+		else
+		{
+			buzzer.play_melody3();
+
+			motor.turn_right(92);
+			delay(1000);
+			motor.brake();
+
+			motor.drive(64);
+			delay(100);
+			motor.brake();
 		}
-
-		is_left = !is_left;
-
-		delay(500);
 	}
-	else {
-		if (is_left) {
-			left();
-		}
-		else {
-			right();
-		}
+	else if (dist_left < serv.get_DIST_VAL_SIDE() || dist_right < serv.get_DIST_VAL_SIDE())
+	{
+		if (dist_left > dist_right)
+		{
+			buzzer.play_melody4();
 
-		delay(5);
+			motor.turn_left(92);
+			delay(250);
+			motor.brake();
+		}
+		else
+		{
+			buzzer.play_melody5();
+
+			motor.turn_right(92);
+			delay(250);
+			motor.brake();
+		}
 	}
+
+	motor.drive(64);
+	delay(250);
+	motor.brake();
+}
+
+void kadai_4() {
+	if (photo_d.is_high()) {
+		led.set_high();
+		buzzer.play_melody1();
+
+		while (true) {
+			delay(INT_MAX);
+		}
+	}
+}
+
+void loop()
+{
+	kadai_3();
+	kadai_4();
 }

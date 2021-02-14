@@ -456,6 +456,118 @@ void setup()
 	delay(5000);
 }
 
+void kadai_1()
+{
+	if (photo_t.is_black())
+	{
+		motor.drive(64);
+	}
+	else if (photo_t.is_black_left())
+	{
+		motor.left(92);
+	}
+	else if (photo_t.is_black_right())
+	{
+		motor.right(92);
+	}
+	else
+	{
+		motor.reverse(64);
+	}
+}
+
+bool kadai_2()
+{
+	if (photo_d.is_high())
+	{
+		led.set_high();
+		buzzer.play_melody1();
+
+		return true;
+	}
+
+	return false;
+}
+
+void kadai_3()
+{
+	serv.set_servo_front();
+	delay(500);
+	const double dist_front = serv.get_dist();
+
+	serv.set_servo_left();
+	delay(500);
+	const double dist_left = serv.get_dist();
+
+	serv.set_servo_right();
+	delay(500);
+	const double dist_right = serv.get_dist();
+
+	if (dist_front < serv.get_DIST_VAL_FRONT())
+	{
+		if (dist_left > dist_right)
+		{
+			buzzer.play_melody2();
+
+			motor.turn_left(92);
+			delay(1000);
+			motor.brake();
+
+			motor.drive(64);
+			delay(100);
+			motor.brake();
+		}
+		else
+		{
+			buzzer.play_melody3();
+
+			motor.turn_right(92);
+			delay(1000);
+			motor.brake();
+
+			motor.drive(64);
+			delay(100);
+			motor.brake();
+		}
+	}
+	else if (dist_left < serv.get_DIST_VAL_SIDE() || dist_right < serv.get_DIST_VAL_SIDE())
+	{
+		if (dist_left > dist_right)
+		{
+			buzzer.play_melody4();
+
+			motor.turn_left(92);
+			delay(250);
+			motor.brake();
+		}
+		else
+		{
+			buzzer.play_melody5();
+
+			motor.turn_right(92);
+			delay(250);
+			motor.brake();
+		}
+	}
+
+	motor.drive(64);
+	delay(250);
+	motor.brake();
+}
+
+bool kadai_4()
+{
+	if (photo_d.is_high())
+	{
+		led.set_high();
+		buzzer.play_melody6();
+
+		return true;
+	}
+
+	return false;
+}
+
 void kadai_5()
 {
 	while (true)
@@ -500,7 +612,30 @@ void kadai_5()
 	}
 }
 
+int kadai_index = 1;
+
 void loop()
 {
-	kadai_5();
+	switch (kadai_index)
+	{
+	case 1:
+		kadai_1();
+		bool is_kadai_2 = kadai_2();
+		if (is_kadai_2)
+		{
+			kadai_index = 3;
+		}
+		break;
+	case 3:
+		kadai_3();
+		bool is_kadai_4 = kadai_4();
+		if (is_kadai_4)
+		{
+			kadai_index = 5;
+		}
+		break;
+	case 5:
+		kadai_5();
+		break;
+	}
 }
