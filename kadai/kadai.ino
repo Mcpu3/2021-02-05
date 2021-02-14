@@ -357,7 +357,7 @@ public:
 		Serial.print("Left: ");
 		Serial.print(analogRead(PIN::LEFT));
 		Serial.print(", ");
-		Serial.print("RIGHT: ");
+		Serial.print("Right: ");
 		Serial.println(analogRead(PIN::RIGHT));
 	}
 };
@@ -559,7 +559,7 @@ bool kadai_4()
 {
 	if (photo_d.is_high())
 	{
-		led.set_high();
+		led.set_low();
 		buzzer.play_melody6();
 
 		return true;

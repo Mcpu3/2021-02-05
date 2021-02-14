@@ -357,7 +357,7 @@ public:
 		Serial.print("Left: ");
 		Serial.print(analogRead(PIN::LEFT));
 		Serial.print(", ");
-		Serial.print("RIGHT: ");
+		Serial.print("Right: ");
 		Serial.println(analogRead(PIN::RIGHT));
 	}
 };
