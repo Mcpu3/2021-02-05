@@ -14,7 +14,7 @@ private:
 public:
 	Buzzer()
 	{
-		pinMode(BUZZER, OUTPUT);
+		pinMode(PIN::BUZZER, OUTPUT);
 	}
 
 	void play_melody1()
@@ -146,8 +146,8 @@ private:
 	void change_speed(const int new_speed)
 	{
 		speed_left = speed_right = new_speed;
-		analogWrite(OUT_LEFT, new_speed);
-		analogWrite(OUT_RIGHT, new_speed);
+		analogWrite(PIN::OUT_LEFT, new_speed);
+		analogWrite(PIN::OUT_RIGHT, new_speed);
 	}
 
 public:
@@ -295,7 +295,7 @@ private:
 	};
 
 public:
-	PhotoD() : HIGH_VAL(500) {}
+	PhotoD() : HIGH_VAL(150) {}
 
 	bool is_high()
 	{
@@ -325,11 +325,11 @@ private:
 	};
 
 public:
-	PhotoT() : BLACK_VAL(500) {}
+	PhotoT() : BLACK_VAL(700) {}
 
 	bool is_black_left()
 	{
-		if (analogRead(PIN::LEFT) > 500)
+		if (analogRead(PIN::LEFT) > BLACK_VAL)
 		{
 			return true;
 		}
@@ -339,7 +339,7 @@ public:
 
 	bool is_black_right()
 	{
-		if (analogRead(PIN::RIGHT) > 500)
+		if (analogRead(PIN::RIGHT) > BLACK_VAL)
 		{
 			return true;
 		}
@@ -376,7 +376,7 @@ public:
 	const double DIST_VAL_FRONT, DIST_VAL_SIDE;
 
 public:
-	Serv() : DIST_VAL_FRONT(6.0), DIST_VAL_SIDE(8.0)
+	Serv() : DIST_VAL_FRONT(5.0), DIST_VAL_SIDE(9.0)
 	{
 		pinMode(PIN::TRIG, OUTPUT);
 		pinMode(PIN::ECHO, INPUT);
@@ -447,6 +447,8 @@ PhotoD photo_d;
 PhotoT photo_t;
 Serv serv;
 
+int begin_seconds;
+
 void setup()
 {
 	pinMode(serv.get_servo_pin(), OUTPUT);
@@ -454,6 +456,8 @@ void setup()
 
 	Serial.begin(9600);
 	delay(5000);
+
+	begin_seconds = millis() / 1000;
 }
 
 void kadai_1()
@@ -464,24 +468,36 @@ void kadai_1()
 	}
 	else if (photo_t.is_black_left())
 	{
-		motor.left(92);
+		motor.left(110);
 	}
 	else if (photo_t.is_black_right())
 	{
-		motor.right(92);
+		motor.right(110);
 	}
 	else
 	{
 		motor.reverse(64);
 	}
+
+	delay(5);
+	motor.brake();
 }
 
-void kadai_2() {
-	if (photo_d.is_high()) {
+void kadai_2()
+{
+	int now = millis() / 1000;
+	if (now - begin_seconds < 25)
+	{
+		return;
+	}
+
+	if (photo_d.is_high())
+	{
 		led.set_high();
 		buzzer.play_melody1();
 
-		while (true) {
+		while (true)
+		{
 			delay(INT_MAX);
 		}
 	}

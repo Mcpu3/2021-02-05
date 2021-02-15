@@ -14,7 +14,7 @@ private:
 public:
 	Buzzer()
 	{
-		pinMode(BUZZER, OUTPUT);
+		pinMode(PIN::BUZZER, OUTPUT);
 	}
 
 	void play_melody1()
@@ -146,8 +146,8 @@ private:
 	void change_speed(const int new_speed)
 	{
 		speed_left = speed_right = new_speed;
-		analogWrite(OUT_LEFT, new_speed);
-		analogWrite(OUT_RIGHT, new_speed);
+		analogWrite(PIN::OUT_LEFT, new_speed);
+		analogWrite(PIN::OUT_RIGHT, new_speed);
 	}
 
 public:
@@ -295,7 +295,7 @@ private:
 	};
 
 public:
-	PhotoD() : HIGH_VAL(500) {}
+	PhotoD() : HIGH_VAL(150) {}
 
 	bool is_high()
 	{
@@ -325,11 +325,11 @@ private:
 	};
 
 public:
-	PhotoT() : BLACK_VAL(500) {}
+	PhotoT() : BLACK_VAL(700) {}
 
 	bool is_black_left()
 	{
-		if (analogRead(PIN::LEFT) > 500)
+		if (analogRead(PIN::LEFT) > BLACK_VAL)
 		{
 			return true;
 		}
@@ -339,7 +339,7 @@ public:
 
 	bool is_black_right()
 	{
-		if (analogRead(PIN::RIGHT) > 500)
+		if (analogRead(PIN::RIGHT) > BLACK_VAL)
 		{
 			return true;
 		}
@@ -376,7 +376,7 @@ public:
 	const double DIST_VAL_FRONT, DIST_VAL_SIDE;
 
 public:
-	Serv() : DIST_VAL_FRONT(6.0), DIST_VAL_SIDE(8.0)
+	Serv() : DIST_VAL_FRONT(5.0), DIST_VAL_SIDE(9.0)
 	{
 		pinMode(PIN::TRIG, OUTPUT);
 		pinMode(PIN::ECHO, INPUT);
@@ -447,6 +447,8 @@ PhotoD photo_d;
 PhotoT photo_t;
 Serv serv;
 
+int begin_seconds;
+
 void setup()
 {
 	pinMode(serv.get_servo_pin(), OUTPUT);
@@ -454,6 +456,8 @@ void setup()
 
 	Serial.begin(9600);
 	delay(5000);
+
+	begin_seconds = millis() / 1000;
 }
 
 void kadai_1()
@@ -464,20 +468,29 @@ void kadai_1()
 	}
 	else if (photo_t.is_black_left())
 	{
-		motor.left(92);
+		motor.left(110);
 	}
 	else if (photo_t.is_black_right())
 	{
-		motor.right(92);
+		motor.right(110);
 	}
 	else
 	{
 		motor.reverse(64);
 	}
+
+	delay(5);
+	motor.brake();
 }
 
 bool kadai_2()
 {
+	int now = millis() / 1000;
+	if (now - begin_seconds < 25)
+	{
+		return false;
+	}
+
 	if (photo_d.is_high())
 	{
 		led.set_high();
@@ -521,8 +534,8 @@ void kadai_3()
 		{
 			buzzer.play_melody3();
 
-			motor.turn_right(92);
-			delay(1000);
+			motor.turn_right(128);
+			delay(500);
 			motor.brake();
 
 			motor.drive(64);
@@ -536,7 +549,7 @@ void kadai_3()
 		{
 			buzzer.play_melody4();
 
-			motor.turn_left(92);
+			motor.turn_left(64);
 			delay(250);
 			motor.brake();
 		}
@@ -544,7 +557,7 @@ void kadai_3()
 		{
 			buzzer.play_melody5();
 
-			motor.turn_right(92);
+			motor.turn_right(64);
 			delay(250);
 			motor.brake();
 		}
@@ -557,6 +570,12 @@ void kadai_3()
 
 bool kadai_4()
 {
+	int now = millis() / 1000;
+	if (now - begin_seconds < 20)
+	{
+		return false;
+	}
+
 	if (photo_d.is_high())
 	{
 		led.set_low();
@@ -577,7 +596,7 @@ void kadai_5()
 			break;
 		}
 
-		motor.drive(48);
+		motor.drive(64);
 		delay(1);
 		motor.brake();
 	}
@@ -586,12 +605,12 @@ void kadai_5()
 
 	while (true)
 	{
-		if (!photo_t.is_black())
+		if (!photo_t.is_black_left() && !photo_t.is_black_right())
 		{
 			break;
 		}
 
-		motor.drive(48);
+		motor.drive(64);
 		delay(1);
 		motor.brake();
 	}
@@ -616,26 +635,27 @@ int kadai_index = 1;
 
 void loop()
 {
-	switch (kadai_index)
+	if (kadai_index == 1)
 	{
-	case 1:
 		kadai_1();
 		bool is_kadai_2 = kadai_2();
 		if (is_kadai_2)
 		{
 			kadai_index = 3;
+			begin_seconds = millis() / 1000;
 		}
-		break;
-	case 3:
+	}
+	else if (kadai_index == 3)
+	{
 		kadai_3();
 		bool is_kadai_4 = kadai_4();
 		if (is_kadai_4)
 		{
 			kadai_index = 5;
 		}
-		break;
-	case 5:
+	}
+	else if (kadai_index == 5)
+	{
 		kadai_5();
-		break;
 	}
 }
