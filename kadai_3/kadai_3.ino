@@ -479,8 +479,8 @@ void kadai_3()
 		{
 			buzzer.play_melody2();
 
-			motor.turn_left(92);
-			delay(1000);
+			motor.turn_left(96);
+			delay(750);
 			motor.brake();
 
 			motor.drive(64);
