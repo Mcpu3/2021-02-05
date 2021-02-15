@@ -428,11 +428,6 @@ public:
 
 		const unsigned long res = pulseIn(PIN::ECHO, HIGH);
 
-		if (res == 0ul)
-		{
-			return get_dist();
-		}
-
 		return (double)res / 2.0 * 343.0 / 10000.0;
 	}
 
@@ -490,12 +485,25 @@ void kadai_5()
 
 	const double dist_end = serv.get_dist();
 
-	for (double i = 1.0; i <= dist_begin - dist_end; i++)
+	if (dist_begin == 0.0 || dist_end == 0.0 || dist_begin - dist_end <= 0.0)
 	{
-		led.set_high();
-		buzzer.play_melody7();
-		led.set_low();
-		delay(1000);
+		for (int i = 0; i < 5; i++)
+		{
+			led.set_high();
+			buzzer.play_melody7();
+			led.set_low();
+			delay(1000);
+		}
+	}
+	else
+	{
+		for (double i = 1.0; i <= dist_begin - dist_end; i++)
+		{
+			led.set_high();
+			buzzer.play_melody7();
+			led.set_low();
+			delay(1000);
+		}
 	}
 
 	while (true)

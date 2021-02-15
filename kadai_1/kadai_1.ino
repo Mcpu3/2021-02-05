@@ -428,11 +428,6 @@ public:
 
 		const unsigned long res = pulseIn(PIN::ECHO, HIGH);
 
-		if (res == 0ul)
-		{
-			return get_dist();
-		}
-
 		return (double)res / 2.0 * 343.0 / 10000.0;
 	}
 
