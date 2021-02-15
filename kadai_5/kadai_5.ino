@@ -140,6 +140,8 @@ private:
 			speed_right = new_speed;
 			analogWrite(PIN::OUT_RIGHT, speed_right);
 			break;
+		default:
+			break;
 		}
 	}
 
@@ -279,6 +281,8 @@ public:
 			break;
 		case STATE::REVERSE:
 			reverse(min(speed_left, speed_right));
+			break;
+		default:
 			break;
 		}
 	}
@@ -424,7 +428,7 @@ public:
 
 		const unsigned long res = pulseIn(PIN::ECHO, HIGH);
 
-		if (res < 0ul)
+		if (res == 0ul)
 		{
 			return get_dist();
 		}
