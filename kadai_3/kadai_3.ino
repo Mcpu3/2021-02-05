@@ -291,7 +291,7 @@ public:
 class PhotoD
 {
 private:
-	const int HIGH_VAL;
+	const int HIGH_VAL_1, HIGH_VAL_2;
 
 	enum PIN
 	{
@@ -299,11 +299,21 @@ private:
 	};
 
 public:
-	PhotoD() : HIGH_VAL(150) {}
+	PhotoD() : HIGH_VAL_1(150), HIGH_VAL_2(500) {}
 
-	bool is_high()
+	bool is_high_1()
 	{
-		if (analogRead(PIN::_PHOTO_D) > HIGH_VAL)
+		if (analogRead(PIN::_PHOTO_D) > HIGH_VAL_1)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	bool is_high_2()
+	{
+		if (analogRead(PIN::_PHOTO_D) > HIGH_VAL_2)
 		{
 			return true;
 		}
@@ -329,7 +339,7 @@ private:
 	};
 
 public:
-	PhotoT() : BLACK_VAL(700) {}
+	PhotoT() : BLACK_VAL(800) {}
 
 	bool is_black_left()
 	{
@@ -380,7 +390,7 @@ public:
 	const double DIST_VAL_FRONT, DIST_VAL_SIDE;
 
 public:
-	Serv() : DIST_VAL_FRONT(5.0), DIST_VAL_SIDE(9.0)
+	Serv() : DIST_VAL_FRONT(5.0), DIST_VAL_SIDE(8.0)
 	{
 		pinMode(PIN::TRIG, OUTPUT);
 		pinMode(PIN::ECHO, INPUT);
@@ -480,7 +490,7 @@ void kadai_3()
 			buzzer.play_melody2();
 
 			motor.turn_left(96);
-			delay(750);
+			delay(600);
 			motor.brake();
 
 			motor.drive(64);
@@ -492,7 +502,7 @@ void kadai_3()
 			buzzer.play_melody3();
 
 			motor.turn_right(128);
-			delay(500);
+			delay(400);
 			motor.brake();
 
 			motor.drive(64);
@@ -506,7 +516,7 @@ void kadai_3()
 		{
 			buzzer.play_melody4();
 
-			motor.turn_left(64);
+			motor.turn_left(110);
 			delay(250);
 			motor.brake();
 		}
@@ -514,7 +524,7 @@ void kadai_3()
 		{
 			buzzer.play_melody5();
 
-			motor.turn_right(64);
+			motor.turn_right(110);
 			delay(250);
 			motor.brake();
 		}
@@ -533,7 +543,7 @@ void kadai_4()
 		return;
 	}
 
-	if (photo_d.is_high())
+	if (photo_d.is_high_2())
 	{
 		led.set_high();
 		buzzer.play_melody1();

@@ -291,7 +291,7 @@ public:
 class PhotoD
 {
 private:
-	const int HIGH_VAL;
+	const int HIGH_VAL_1, HIGH_VAL_2;
 
 	enum PIN
 	{
@@ -299,11 +299,21 @@ private:
 	};
 
 public:
-	PhotoD() : HIGH_VAL(150) {}
+	PhotoD() : HIGH_VAL_1(150), HIGH_VAL_2(500) {}
 
-	bool is_high()
+	bool is_high_1()
 	{
-		if (analogRead(PIN::_PHOTO_D) > HIGH_VAL)
+		if (analogRead(PIN::_PHOTO_D) > HIGH_VAL_1)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	bool is_high_2()
+	{
+		if (analogRead(PIN::_PHOTO_D) > HIGH_VAL_2)
 		{
 			return true;
 		}
@@ -329,7 +339,7 @@ private:
 	};
 
 public:
-	PhotoT() : BLACK_VAL(700) {}
+	PhotoT() : BLACK_VAL(800) {}
 
 	bool is_black_left()
 	{
@@ -380,7 +390,7 @@ public:
 	const double DIST_VAL_FRONT, DIST_VAL_SIDE;
 
 public:
-	Serv() : DIST_VAL_FRONT(5.0), DIST_VAL_SIDE(9.0)
+	Serv() : DIST_VAL_FRONT(5.0), DIST_VAL_SIDE(8.0)
 	{
 		pinMode(PIN::TRIG, OUTPUT);
 		pinMode(PIN::ECHO, INPUT);
@@ -467,11 +477,11 @@ void kadai_1()
 	}
 	else if (photo_t.is_black_left())
 	{
-		motor.left(110);
+		motor.left(90);
 	}
 	else if (photo_t.is_black_right())
 	{
-		motor.right(110);
+		motor.right(90);
 	}
 	else
 	{
@@ -485,12 +495,12 @@ void kadai_1()
 void kadai_2()
 {
 	int now = millis() / 1000;
-	if (now - begin_seconds < 25)
+	if (now - begin_seconds < 22)
 	{
 		return;
 	}
 
-	if (photo_d.is_high())
+	if (photo_d.is_high_1())
 	{
 		led.set_high();
 		buzzer.play_melody1();

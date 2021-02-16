@@ -291,7 +291,7 @@ public:
 class PhotoD
 {
 private:
-	const int HIGH_VAL;
+	const int HIGH_VAL_1, HIGH_VAL_2;
 
 	enum PIN
 	{
@@ -299,11 +299,21 @@ private:
 	};
 
 public:
-	PhotoD() : HIGH_VAL(150) {}
+	PhotoD() : HIGH_VAL_1(150), HIGH_VAL_2(500) {}
 
-	bool is_high()
+	bool is_high_1()
 	{
-		if (analogRead(PIN::_PHOTO_D) > HIGH_VAL)
+		if (analogRead(PIN::_PHOTO_D) > HIGH_VAL_1)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	bool is_high_2()
+	{
+		if (analogRead(PIN::_PHOTO_D) > HIGH_VAL_2)
 		{
 			return true;
 		}
@@ -329,7 +339,7 @@ private:
 	};
 
 public:
-	PhotoT() : BLACK_VAL(700) {}
+	PhotoT() : BLACK_VAL(800) {}
 
 	bool is_black_left()
 	{
@@ -380,7 +390,7 @@ public:
 	const double DIST_VAL_FRONT, DIST_VAL_SIDE;
 
 public:
-	Serv() : DIST_VAL_FRONT(5.0), DIST_VAL_SIDE(9.0)
+	Serv() : DIST_VAL_FRONT(5.0), DIST_VAL_SIDE(8.0)
 	{
 		pinMode(PIN::TRIG, OUTPUT);
 		pinMode(PIN::ECHO, INPUT);
@@ -457,6 +467,8 @@ void setup()
 
 void kadai_5()
 {
+	int j = 0;
+
 	while (true)
 	{
 		if (photo_t.is_black())
@@ -464,12 +476,51 @@ void kadai_5()
 			break;
 		}
 
-		motor.drive(64);
+		if (j == 0)
+		{
+			serv.set_servo_left();
+			delay(500);
+			const double dist_left = serv.get_dist();
+
+			serv.set_servo_right();
+			delay(500);
+			const double dist_right = serv.get_dist();
+
+			serv.set_servo_front();
+			delay(250);
+
+			if (dist_left < serv.get_DIST_VAL_SIDE() || dist_right < serv.get_DIST_VAL_SIDE())
+			{
+				if (dist_left > dist_right)
+				{
+					buzzer.play_melody4();
+
+					motor.turn_left(64);
+					delay(250);
+					motor.brake();
+				}
+				else
+				{
+					buzzer.play_melody5();
+
+					motor.turn_right(64);
+					delay(250);
+					motor.brake();
+				}
+			}
+		}
+
+		motor.drive(55);
 		delay(1);
 		motor.brake();
+
+		j++;
+		j %= 500;
 	}
 
 	const double dist_begin = serv.get_dist();
+
+	j = 0;
 
 	while (true)
 	{
@@ -478,37 +529,62 @@ void kadai_5()
 			break;
 		}
 
-		motor.drive(64);
+		if (j == 0)
+		{
+			serv.set_servo_left();
+			delay(500);
+			const double dist_left = serv.get_dist();
+
+			serv.set_servo_right();
+			delay(500);
+			const double dist_right = serv.get_dist();
+
+			serv.set_servo_front();
+			delay(250);
+
+			if (dist_left < serv.get_DIST_VAL_SIDE() || dist_right < serv.get_DIST_VAL_SIDE())
+			{
+				if (dist_left > dist_right)
+				{
+					buzzer.play_melody4();
+
+					motor.turn_left(64);
+					delay(250);
+					motor.brake();
+				}
+				else
+				{
+					buzzer.play_melody5();
+
+					motor.turn_right(64);
+					delay(250);
+					motor.brake();
+				}
+			}
+		}
+
+		motor.drive(55);
 		delay(1);
 		motor.brake();
+
+		j++;
+		j %= 500;
 	}
 
 	const double dist_end = serv.get_dist();
 
-	if (dist_begin == 0.0 || dist_end == 0.0 || dist_begin - dist_end <= 0.0)
+	while (true)
 	{
-		for (int i = 0; i < 5; i++)
-		{
-			led.set_high();
-			buzzer.play_melody7();
-			led.set_low();
-			delay(1000);
-		}
-	}
-	else
-	{
+		buzzer.play_melody7();
+		delay(1000);
+
 		for (double i = 1.0; i <= dist_begin - dist_end; i++)
 		{
 			led.set_high();
-			buzzer.play_melody7();
+			delay(500);
 			led.set_low();
-			delay(1000);
+			delay(500);
 		}
-	}
-
-	while (true)
-	{
-		delay(INT_MAX);
 	}
 }
 
